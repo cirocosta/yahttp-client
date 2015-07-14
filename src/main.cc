@@ -1,7 +1,6 @@
-/* #include <iostream> */
-/* #include <string> */
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <string>
+
 #include <errno.h>
 #include <arpa/inet.h>
 #include <string.h>
@@ -11,129 +10,139 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#include "CHK.h"
-
 #define PORT 8080
 #define MAXDATASIZE 100
 
-/* class Connection */
-/* { */
-/*   struct hostent* m_he; */
-/*   struct sockaddr_in m_server_addr; */
-/*   char m_buf[MAXDATASIZE]; */
-/*   int m_numbytes; */
-/*   std::string m_address; */
+class Connection
+{
+  struct sockaddr_in m_server_addr;
+  struct addrinfo *m_address_info;
+  std::string m_address;
+  unsigned int m_port;
 
-/* public: */
-/*   Connection(const std::string address, unsigned int port); */
-/*   ~Connection(); */
+  char m_buf[MAXDATASIZE];
+  int m_numbytes;
+  int m_sock_fd;
 
-/*   void start() */
-/*   { */
+public:
+  Connection(const std::string address, unsigned int port)
+    : m_address(address), m_port(port)
+  {
+    _init();
+  }
 
-/*   } */
-/*   void request(); */
-/*   void end(); */
+  ~Connection()
+  {
+    freeaddrinfo(m_address_info);
+  }
 
-/* private: */
-/*   void _init() */
-/*   { */
-/*     CHKNULL_H( */
-/*         m_he = gethostbyname(m_address), */
-/*         "gethostbyname" */
-/*     ); */
-/*   } */
-/* }; */
+  int start()
+  {
+    struct addrinfo *res;
+    int err = 0;
+    char hostname[1025];
+
+    m_server_addr.sin_family = AF_INET;
+    m_server_addr.sin_port = htons(m_port);
+    memset(&(m_server_addr.sin_zero), '\0', 8);
+
+    for (res = m_address_info; res != NULL; res = res->ai_next) {
+      err = getnameinfo(res->ai_addr, res->ai_addrlen, hostname,
+                        1025, NULL, 0, NI_NUMERICHOST);
+      if (err) {
+        std::cerr << "Error in getnameinfo: " << gai_strerror(err)
+                  << std::endl;
+        continue;
+      }
+
+      if (*hostname != '\0') {
+        std::cout << "Trying connection to:" << std::endl
+                  << "\tAddress:" << m_address << std::endl
+                  << "\tIP: " << hostname << ":" << m_port << std::endl;
+      }
+
+      m_server_addr.sin_addr =
+        ((struct sockaddr_in*)(res->ai_addr))->sin_addr;
+
+      err = connect(m_sock_fd, (struct sockaddr*)&m_server_addr,
+                    sizeof(struct sockaddr));
+      if (!err) {
+        std::cout << "Connection Established!" << std::endl;
+        break;
+      } else {
+        std::cerr << "Connect Error: " << strerror(errno) << std::endl;
+        continue;
+      }
+
+      std::cerr << "Couldn't establish a connection." << std::endl;
+      err = EXIT_FAILURE;
+    }
+
+    return err;
+  }
+
+  int request(const char *message)
+  {
+    int numbytes;
+    int err;
+
+    if (!~(numbytes = send(m_sock_fd, message, strlen(message), 0))) {
+      std::cerr << "Error in Send: " << strerror(errno) << std::endl;
+      err = EXIT_FAILURE;
+    }
+
+    if (!~(numbytes = recv(m_sock_fd, m_buf, MAXDATASIZE-1, 0))) {
+      std::cerr << "Error in Recv: " << strerror(errno) << std::endl;
+      err = EXIT_FAILURE;
+    }
+
+    return err;
+  }
+
+  void end()
+  {
+    close(m_sock_fd);
+  }
+
+private:
+  int _init()
+  {
+    struct addrinfo address_hints;
+    int err = 0;
+
+    memset(&address_hints, 0, sizeof(address_hints));
+    address_hints.ai_family = AF_INET;
+    address_hints.ai_socktype = SOCK_STREAM;
+
+    err = getaddrinfo(m_address.c_str(), NULL,
+                      &address_hints, &m_address_info);
+
+    if (err) {
+      if (err == EAI_SYSTEM)
+        perror("getaddrinfo");
+      else
+        fprintf(stderr, "error in getaddrinfo: %s\n", gai_strerror(err));
+      return err;
+    }
+
+    m_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (!~m_sock_fd) {
+      std::cerr << "socket: " << strerror(errno) << std::endl;
+      return m_sock_fd;
+    }
+
+    return err;
+  }
+};
 
 
 int main(int argc, char *argv[])
 {
-  int sock_fd, numbytes;
-  char buf[MAXDATASIZE];
-  struct sockaddr_in server_addr;
-  struct addrinfo *address_info;
-  struct addrinfo *res;
-  struct addrinfo address_hints;
-  int error;
+  Connection connection (std::string(argv[1]), 8080);
+  connection.start();
+  connection.request("Hello World!");
+  connection.end();
 
-  memset(&address_hints, 0, sizeof(address_hints));
-  address_hints.ai_family = AF_INET;
-  address_hints.ai_socktype = SOCK_STREAM;
-
-  if (argc != 2) {
-    fprintf(stderr, "usage: tcp-client address\n");
-    exit(EXIT_FAILURE);
-  }
-
-  // INIT
-  if ((error = getaddrinfo(argv[1], NULL, &address_hints, &address_info))) {
-    if (error == EAI_SYSTEM)
-      perror("getaddrinfo");
-    else
-      fprintf(stderr, "error in getaddrinfo: %s\n", gai_strerror(error));
-
-    exit(EXIT_FAILURE);
-  }
-
-  CHKERR(
-    sock_fd = socket(AF_INET, SOCK_STREAM, 0),
-    "socket"
-  );
-
-  printf("Socket Created!\n'");
-
-  // CONNECT
-  for (res = address_info; res != NULL; res = res->ai_next) {
-    char hostname[1025];
-
-    if ((error = getnameinfo(res->ai_addr, res->ai_addrlen, hostname, 1025, NULL, 0, NI_NUMERICHOST))) {
-      fprintf(stderr, "error in getnameinfo: %s", gai_strerror(error));
-      continue;
-    }
-
-    if (*hostname != '\0') {
-      printf("Trying connection to:\n");
-      printf("\tHostname:\t %s\n", argv[1]);
-      printf("\tIP Address:\t %s:%d\n", hostname, PORT);
-    }
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(PORT);
-    server_addr.sin_addr = ((struct sockaddr_in *)(res->ai_addr))->sin_addr;
-    memset(&(server_addr.sin_zero), '\0', 8);
-
-    if (!~connect(sock_fd, (struct sockaddr*)&server_addr, sizeof(struct sockaddr))) {
-      fputs("Connect error: ", stderr);
-      fputs(strerror(errno), stderr);
-      fputs("\n", stderr);
-      continue;
-    } else {
-      printf("Connection Established!\n");
-      break;
-    }
-
-    fprintf(stderr, "Could'nt establish a connection.\n");
-    exit(EXIT_FAILURE);
-  }
-
-  // SEND AND RECEIVE
-
-  CHKERR(
-    numbytes = recv(sock_fd, buf, MAXDATASIZE-1, 0),
-    "recv"
-  );
-  send(sock_fd, "hello world\n", 12, 0);
-
-  buf[numbytes] = '\0';
-  printf("Received: %s\n", buf);
-
-  // CLOSE CONNECTION
-  close(sock_fd);
-
-  // FREE ALLOCATED RESOURCES
-  freeaddrinfo(address_info);
-  freeaddrinfo(res);
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 
