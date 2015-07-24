@@ -6,6 +6,7 @@ ExternalProject_Add(
   gtest
   GIT_REPOSITORY https://github.com/cirocosta/googletest.git
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
+  UPDATE_COMMAND ""
   INSTALL_COMMAND ""
 )
 

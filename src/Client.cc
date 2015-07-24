@@ -1,6 +1,6 @@
-#include "yahttp/Client.hh"
+#include "yahttp/client/Client.hh"
 
-namespace http {
+namespace yahttp {
 
   Client::Client(const std::string address, unsigned int port)
     : m_address(address), m_port(port)

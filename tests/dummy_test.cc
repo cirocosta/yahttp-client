@@ -6,3 +6,4 @@ using namespace yahttp;
 TEST(Client, GeneratesAccordingly) {
   EXPECT_EQ(1, 1);
 }
+

@@ -13,7 +13,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-namespace http {
+namespace yahttp {
 
 #define MAXDATASIZE 1024
 
