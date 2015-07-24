@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 
 #include "yahttp/URL.hh"
+#include "yahttp/HTTP.hh"
 
 namespace yahttp { namespace client {
 
@@ -22,23 +23,24 @@ namespace yahttp { namespace client {
 class Client
 {
   struct sockaddr_in m_server_addr;
-  struct addrinfo *m_address_info;
-  std::string m_address;
-  unsigned int m_port;
+  struct addrinfo *m_address_info = nullptr;
+  URL m_url;
 
   char m_buf[MAXDATASIZE];
   int m_numbytes;
   int m_sock_fd;
 
 public:
-  Client(const std::string address, const unsigned int port);
-  ~Client();
+  Client (const URL url);
+  ~Client ();
 
-  int start();
-  int request(const char *message);
-  void end();
+  int start ();
+  std::string gen_get ();
+  std::string gen_get (const std::string& path);
+  int init ();
+  void end ();
 private:
-  int _init();
+  int _request (const char *message);
 };
 
 }};  // ! ns yahttp client

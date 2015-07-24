@@ -12,13 +12,13 @@ URL::URL (const std::string& url)
   if (std::regex_match(url, url_match_result, URL_REGEX)) {
     https = url_match_result[2] == "https";
     path = url_match_result[5];
+    authority = url_match_result[4];
 
     if (path.empty())
       path = "/";
 
-    std::regex_match(url_match_result[4].str(), authority_port_match,
+    std::regex_match(authority, authority_port_match,
                      AUTHORITY_PORT_REGEX);
-    authority = authority_port_match[1];
     matched_port = authority_port_match[3];
 
     if (matched_port.empty()) {

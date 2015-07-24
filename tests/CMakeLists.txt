@@ -32,3 +32,12 @@ target_link_libraries(url_test libgtest
 
 add_test(NAME url_test COMMAND url_test)
 
+add_executable(client_test main_test.cc client_test.cc)
+target_link_libraries(client_test libgtest
+  url
+  client
+  yahttpparser
+)
+
+add_test(NAME client_test COMMAND client_test)
+

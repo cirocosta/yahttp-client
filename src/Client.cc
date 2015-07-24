@@ -2,18 +2,18 @@
 
 namespace yahttp { namespace client {
 
-  Client::Client(const std::string address, const unsigned int port)
-    : m_address(address), m_port(port)
+  Client::Client(const URL url)
+    : m_url (url)
   {
-    _init();
   }
 
   Client::~Client()
   {
-    freeaddrinfo(m_address_info);
+    if (m_address_info)
+      freeaddrinfo(m_address_info);
   }
 
-  int Client::_init()
+  int Client::init()
   {
     struct addrinfo address_hints;
     int err = 0;
@@ -22,7 +22,7 @@ namespace yahttp { namespace client {
     address_hints.ai_family = AF_INET;
     address_hints.ai_socktype = SOCK_STREAM;
 
-    err = getaddrinfo(m_address.c_str(), NULL,
+    err = getaddrinfo(m_url.authority.c_str(), NULL,
                       &address_hints, &m_address_info);
 
     if (err) {
@@ -49,7 +49,7 @@ namespace yahttp { namespace client {
     char hostname[1025];
 
     m_server_addr.sin_family = AF_INET;
-    m_server_addr.sin_port = htons(m_port);
+    m_server_addr.sin_port = htons(m_url.port);
     memset(&(m_server_addr.sin_zero), '\0', 8);
 
     for (res = m_address_info; res != NULL; res = res->ai_next) {
@@ -63,8 +63,8 @@ namespace yahttp { namespace client {
 
       if (*hostname != '\0') {
         std::cout << "Trying connection to:" << std::endl
-                  << "\tAddress:" << m_address << std::endl
-                  << "\tIP: " << hostname << ":" << m_port << std::endl;
+                  << "\tAddress:" << m_url.authority << std::endl
+                  << "\tIP: " << hostname << ":" << m_url.port << std::endl;
       }
 
       m_server_addr.sin_addr =
@@ -87,7 +87,34 @@ namespace yahttp { namespace client {
     return err;
   }
 
-  int Client::request(const char *message)
+  std::string Client::gen_get ()
+  {
+    return gen_get(m_url.path);
+  }
+
+  std::string Client::gen_get (const std::string& path)
+  {
+    std::ostringstream actual;
+
+    HTTPMessage msg;
+    HTTPHeaderMap headers;
+
+    headers["Host"] = m_url.authority;
+
+    HTTPStartLinePtr sl (
+      new HTTPRequestStartLine( "HTTP/1.1", HTTPMethod::GET, path)
+    );
+
+    msg.start_line = sl;
+    msg.headers = headers;
+    msg.type = HTTPMessageType::Request;
+
+    actual << msg;
+
+    return actual.str();
+  }
+
+  int Client::_request(const char *message)
   {
     int numbytes;
     int err;

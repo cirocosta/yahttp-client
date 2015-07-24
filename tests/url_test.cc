@@ -8,7 +8,7 @@ TEST(Url, SimpleLocalhost) {
   URL url (url_str);
 
   EXPECT_EQ(url.path, "/");
-  EXPECT_EQ(url.authority, "localhost");
+  EXPECT_EQ(url.authority, "localhost:8080");
   EXPECT_EQ(url.port, 8080);
   EXPECT_EQ(url.https, false);
 }
@@ -18,7 +18,7 @@ TEST(Url, HttpsLocalhostWithPath) {
   URL url (url_str);
 
   EXPECT_EQ(url.path, "/assets/photo.png");
-  EXPECT_EQ(url.authority, "localhost");
+  EXPECT_EQ(url.authority, "localhost:8080");
   EXPECT_EQ(url.port, 8080);
   EXPECT_EQ(url.https, true);
 }

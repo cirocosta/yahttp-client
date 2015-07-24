@@ -6,7 +6,7 @@ add_library(cli    Cli.cc)
 
 add_executable(yahttp-client main.cc)
 
-target_include_directories(yahttp-client PUBLIC "${yahttp-parser_SOURCE_DIR}/includes")
+include_directories(yahttp-client "${yahttp-parser_SOURCE_DIR}/includes")
 
 target_link_libraries(yahttp-client
   cli
