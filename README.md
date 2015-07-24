@@ -5,6 +5,13 @@
 ## build
 
 ```sh
+
+# after clonning, recursively update dependencies
+
+$ git submodule update --init --recursive
+
+# create the build
+
 $ mkdir build
 $ cd build
 $ cmake ..

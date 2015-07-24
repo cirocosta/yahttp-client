@@ -1,0 +1,3 @@
+[submodule "lib/yahttp-parser"]
+	path = lib/yahttp-parser
+	url = https://github.com/cirocosta/yahttp-parser.git
