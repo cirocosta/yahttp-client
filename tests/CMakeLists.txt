@@ -24,17 +24,11 @@ include_directories(${yahttp-parser_SOURCE_DIR}/includes)
 
 
 #     --    TEST
-add_executable(dummy_test main_test.cc dummy_test.cc)
-target_link_libraries(dummy_test libgtest
-  client
+
+add_executable(url_test main_test.cc url_test.cc)
+target_link_libraries(url_test libgtest
+  url
 )
 
-add_test(NAME dummy_test COMMAND dummy_test)
-
-add_custom_command(
-  TARGET dummy_test PRE_BUILD
-  COMMAND ${CMAKE_COMMAND}
-  -E copy_directory
-  ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:dummy_test>/assets
-)
+add_test(NAME url_test COMMAND url_test)
 

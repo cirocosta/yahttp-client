@@ -35,26 +35,10 @@ int main(int argc, char *argv[])
   cli.parse(argc, argv);
   unsigned counter = 0;
 
-  std::regex url_regex (
-    R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)",
-    std::regex::extended
-  );
-  std::smatch url_match_result;
-
-  std::cout << "Checking: " << cli.url << std::endl;
-
-  if (std::regex_match(cli.url, url_match_result, url_regex)) {
-    for (const auto& res : url_match_result) {
-      std::cout << counter++ << ": " << res << std::endl;
-    }
-  } else {
-    std::cerr << "Malformed url." << std::endl;
-  }
-
-  /* Client connection (cli.url, 8080); */
-  /* connection.start(); */
-  /* connection.request(make_message().c_str()); */
-  /* connection.end(); */
+  Client connection (cli.url, 8080);
+  connection.start();
+  connection.request(make_message().c_str());
+  connection.end();
 
   return EXIT_SUCCESS;
 }

@@ -1,8 +1,8 @@
 #include "yahttp/client/Client.hh"
 
-namespace yahttp {
+namespace yahttp { namespace client {
 
-  Client::Client(const std::string address, unsigned int port)
+  Client::Client(const std::string address, const unsigned int port)
     : m_address(address), m_port(port)
   {
     _init();
@@ -11,6 +11,35 @@ namespace yahttp {
   Client::~Client()
   {
     freeaddrinfo(m_address_info);
+  }
+
+  int Client::_init()
+  {
+    struct addrinfo address_hints;
+    int err = 0;
+
+    memset(&address_hints, 0, sizeof(address_hints));
+    address_hints.ai_family = AF_INET;
+    address_hints.ai_socktype = SOCK_STREAM;
+
+    err = getaddrinfo(m_address.c_str(), NULL,
+                      &address_hints, &m_address_info);
+
+    if (err) {
+      if (err == EAI_SYSTEM)
+        perror("getaddrinfo");
+      else
+        fprintf(stderr, "error in getaddrinfo: %s\n", gai_strerror(err));
+      return err;
+    }
+
+    m_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (!~m_sock_fd) {
+      std::cerr << "socket: " << strerror(errno) << std::endl;
+      return m_sock_fd;
+    }
+
+    return err;
   }
 
   int Client::start()
@@ -81,33 +110,5 @@ namespace yahttp {
     close(m_sock_fd);
   }
 
-  int Client::_init()
-  {
-    struct addrinfo address_hints;
-    int err = 0;
-
-    memset(&address_hints, 0, sizeof(address_hints));
-    address_hints.ai_family = AF_INET;
-    address_hints.ai_socktype = SOCK_STREAM;
-
-    err = getaddrinfo(m_address.c_str(), NULL,
-                      &address_hints, &m_address_info);
-
-    if (err) {
-      if (err == EAI_SYSTEM)
-        perror("getaddrinfo");
-      else
-        fprintf(stderr, "error in getaddrinfo: %s\n", gai_strerror(err));
-      return err;
-    }
-
-    m_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (!~m_sock_fd) {
-      std::cerr << "socket: " << strerror(errno) << std::endl;
-      return m_sock_fd;
-    }
-
-    return err;
-  }
-};
+}}; // !ns yahttp client
 

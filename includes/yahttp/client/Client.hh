@@ -1,5 +1,5 @@
-#ifndef HTTP_CLIENT_HH
-#define HTTP_CLIENT_HH
+#ifndef YAHTTP__CLIENT__CLIENT_HH
+#define YAHTTP__CLIENT__CLIENT_HH
 
 #include <iostream>
 #include <string>
@@ -13,31 +13,34 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-namespace yahttp {
+#include "yahttp/URL.hh"
+
+namespace yahttp { namespace client {
 
 #define MAXDATASIZE 1024
 
-  class Client
-  {
-    struct sockaddr_in m_server_addr;
-    struct addrinfo *m_address_info;
-    std::string m_address;
-    unsigned int m_port;
+class Client
+{
+  struct sockaddr_in m_server_addr;
+  struct addrinfo *m_address_info;
+  std::string m_address;
+  unsigned int m_port;
 
-    char m_buf[MAXDATASIZE];
-    int m_numbytes;
-    int m_sock_fd;
+  char m_buf[MAXDATASIZE];
+  int m_numbytes;
+  int m_sock_fd;
 
-  public:
-    Client(const std::string address, unsigned int port);
-    ~Client();
+public:
+  Client(const std::string address, const unsigned int port);
+  ~Client();
 
-    int start();
-    int request(const char *message);
-    void end();
-  private:
-    int _init();
-  };
+  int start();
+  int request(const char *message);
+  void end();
+private:
+  int _init();
 };
 
-#endif // !HTTP_CLIENT
+}};  // ! ns yahttp client
+
+#endif
