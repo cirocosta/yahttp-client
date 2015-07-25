@@ -146,7 +146,7 @@ namespace yahttp { namespace client {
     close(m_sock_fd);
   }
 
-  int Client::_readn (int fd, char *buffer, const int n)
+  int Client::_readn (int fd, char *buffer, const int n) const
   {
     char *a;
     int m, t;
