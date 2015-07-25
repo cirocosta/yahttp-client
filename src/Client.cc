@@ -114,20 +114,29 @@ namespace yahttp { namespace client {
     return actual.str();
   }
 
-  int Client::_request(const char *message)
+  int Client::request(const char *message)
   {
-    int numbytes;
+    char buf[MAXDATASIZE];
+    int numbytes = 0;
     int err;
+    unsigned chunk_size = MAXDATASIZE;
+    std::stringstream ss;
 
     if (!~(numbytes = send(m_sock_fd, message, strlen(message), 0))) {
       std::cerr << "Error in Send: " << strerror(errno) << std::endl;
       err = EXIT_FAILURE;
     }
 
-    if (!~(numbytes = recv(m_sock_fd, m_buf, MAXDATASIZE-1, 0))) {
-      std::cerr << "Error in Recv: " << strerror(errno) << std::endl;
-      err = EXIT_FAILURE;
+    memset(buf, 0, MAXDATASIZE);
+    while (numbytes < MAXDATASIZE) {
+      if (!~(numbytes = recv(m_sock_fd, buf + numbytes, MAXDATASIZE-numbytes-1, 0))) {
+        std::cerr << "Error in Recv: " << strerror(errno) << std::endl;
+        err = EXIT_FAILURE;
+      }
     }
+    std::cout << "\t\t --- CHUNK \n\n";
+    std::cout << buf;
+
 
     return err;
   }
@@ -137,5 +146,26 @@ namespace yahttp { namespace client {
     close(m_sock_fd);
   }
 
+  int Client::_readn (int fd, char *buffer, const int n)
+  {
+    char *a;
+    int m, t;
+
+    a = buffer;
+    t = 0;
+
+    while (t < n) {
+      m = read(fd, a+t, n-t);
+      if (m <= 0) {
+        if (!t)
+          return m;
+        break;
+      }
+
+      t += m;
+    }
+
+    return t;
+  }
 }}; // !ns yahttp client
 

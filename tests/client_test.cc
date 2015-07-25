@@ -34,3 +34,4 @@ TEST(Client, GetDifferentPath) {
 
   EXPECT_EQ(expected_get, req_msg);
 }
+

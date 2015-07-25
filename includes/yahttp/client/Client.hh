@@ -2,6 +2,7 @@
 #define YAHTTP__CLIENT__CLIENT_HH
 
 #include <iostream>
+#include <sstream>
 #include <string>
 
 #include <errno.h>
@@ -18,7 +19,7 @@
 
 namespace yahttp { namespace client {
 
-#define MAXDATASIZE 1024
+#define MAXDATASIZE 102400
 
 class Client
 {
@@ -26,7 +27,6 @@ class Client
   struct addrinfo *m_address_info = nullptr;
   URL m_url;
 
-  char m_buf[MAXDATASIZE];
   int m_numbytes;
   int m_sock_fd;
 
@@ -34,13 +34,15 @@ public:
   Client (const URL url);
   ~Client ();
 
+  int init ();
   int start ();
+  int request (const char *message);
+  void end ();
+
   std::string gen_get ();
   std::string gen_get (const std::string& path);
-  int init ();
-  void end ();
 private:
-  int _request (const char *message);
+  int _readn (int fd, char *buffer, const int n) const;
 };
 
 }};  // ! ns yahttp client
