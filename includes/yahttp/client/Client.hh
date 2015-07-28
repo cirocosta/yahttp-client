@@ -6,6 +6,7 @@
 #include <string>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <netdb.h>
@@ -16,6 +17,7 @@
 
 #include "yahttp/URL.hh"
 #include "yahttp/HTTP.hh"
+#include "yahttp/Timer.hh"
 
 namespace yahttp { namespace client {
 
@@ -43,6 +45,7 @@ public:
   std::string gen_get (const std::string& path);
 private:
   int _readn (int fd, char *buffer, const int n) const;
+  int _recv_till_timeout(int timeout = 2);
 };
 
 }};  // ! ns yahttp client

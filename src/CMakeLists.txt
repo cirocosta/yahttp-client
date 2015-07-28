@@ -1,7 +1,7 @@
 #     --    Client
 
 add_library(url    URL.cc)
-add_library(client Client.cc)
+add_library(client Client.cc Timer.cc)
 add_library(cli    Cli.cc)
 
 add_executable(yahttp-client main.cc)

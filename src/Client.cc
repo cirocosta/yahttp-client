@@ -116,10 +116,8 @@ namespace yahttp { namespace client {
 
   int Client::request(const char *message)
   {
-    char buf[MAXDATASIZE];
     int numbytes = 0;
     int err;
-    unsigned chunk_size = MAXDATASIZE;
     std::stringstream ss;
 
     if (!~(numbytes = send(m_sock_fd, message, strlen(message), 0))) {
@@ -127,18 +125,46 @@ namespace yahttp { namespace client {
       err = EXIT_FAILURE;
     }
 
-    memset(buf, 0, MAXDATASIZE);
-    while (numbytes < MAXDATASIZE) {
-      if (!~(numbytes = recv(m_sock_fd, buf + numbytes, MAXDATASIZE-numbytes-1, 0))) {
-        std::cerr << "Error in Recv: " << strerror(errno) << std::endl;
-        err = EXIT_FAILURE;
-      }
-    }
-    std::cout << "\t\t --- CHUNK \n\n";
-    std::cout << buf;
-
+    _recv_till_timeout();
 
     return err;
+  }
+
+  /**
+   * Receives until data stops being sent.
+   * TODO avoid relying on this.
+   */
+  int Client::_recv_till_timeout (int timeout)
+  {
+    char buf[MAXDATASIZE];
+    int total_size = 0;
+    int recv_size;
+    Timer timer;
+
+    if (!~fcntl(m_sock_fd, F_SETFL, O_NONBLOCK)) {
+      std::cerr << "Error in fcntl: " << strerror(errno) << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    timer.reset();
+
+    while (1) {
+      if (total_size > 0  && timer.has_elapsed(timeout))
+        break;
+
+      timer.reset();
+
+      memset(buf, 0, MAXDATASIZE);
+      if (!~(recv_size = recv(m_sock_fd, buf, MAXDATASIZE - 1, 0)))
+        ::usleep(100000);
+      else {
+        total_size += recv_size;
+        printf("%s", buf);
+        timer.reset();
+      }
+    }
+
+    return total_size;
   }
 
   void Client::end()
