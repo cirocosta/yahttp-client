@@ -35,7 +35,7 @@ namespace yahttp { namespace client {
 
     m_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (!~m_sock_fd) {
-      std::cerr << "socket: " << strerror(errno) << std::endl;
+      LOGERR("socket: " << strerror(errno) << std::endl);
       return m_sock_fd;
     }
 
@@ -56,15 +56,14 @@ namespace yahttp { namespace client {
       err = getnameinfo(res->ai_addr, res->ai_addrlen, hostname,
                         1025, NULL, 0, NI_NUMERICHOST);
       if (err) {
-        std::cerr << "Error in getnameinfo: " << gai_strerror(err)
-                  << std::endl;
+        LOGERR("Error in getnameinfo: " << gai_strerror(err) << std::endl);
         continue;
       }
 
       if (*hostname != '\0') {
-        std::cout << "Trying connection to:" << std::endl
-                  << "\tAddress:" << m_url.authority << std::endl
-                  << "\tIP: " << hostname << ":" << m_url.port << std::endl;
+        LOG("Trying connection to:" << std::endl
+             << "\tAddress:" << m_url.authority << std::endl
+             << "\tIP: " << hostname << ":" << m_url.port << std::endl);
       }
 
       m_server_addr.sin_addr =
@@ -73,14 +72,14 @@ namespace yahttp { namespace client {
       err = connect(m_sock_fd, (struct sockaddr*)&m_server_addr,
                     sizeof(struct sockaddr));
       if (!err) {
-        std::cout << "Connection Established!" << std::endl;
+        LOG("Connection Established!" << std::endl);
         break;
       } else {
-        std::cerr << "Connect Error: " << strerror(errno) << std::endl;
+        LOGERR("Connect Error: " << strerror(errno) << std::endl);
         continue;
       }
 
-      std::cerr << "Couldn't establish a connection." << std::endl;
+      LOGERR("Couldn't establish a connection." << std::endl);
       err = EXIT_FAILURE;
     }
 
@@ -122,13 +121,16 @@ namespace yahttp { namespace client {
     std::stringstream ss;
 
     if (!~(numbytes = send(m_sock_fd, message, strlen(message), 0))) {
-      std::cerr << "Error in Send: " << strerror(errno) << std::endl;
+      LOGERR("Error in Send: " << strerror(errno) << std::endl);
       err = EXIT_FAILURE;
     }
 
     _recv_till_timeout(ss);
     driver.parse_source(ss.str());
-    assert(driver.message->type == HTTPMessageType::Response);
+
+    ASSERT(driver.result == 0, "Message must be parsable");
+    ASSERT(driver.message->type == HTTPMessageType::Response,
+           "HTTPMessage type must be: Response");
 
     return driver.message;
   }
@@ -146,7 +148,7 @@ namespace yahttp { namespace client {
     Timer timer;
 
     if (!~fcntl(m_sock_fd, F_SETFL, O_NONBLOCK)) {
-      std::cerr << "Error in fcntl: " << strerror(errno) << std::endl;
+      LOGERR("Error in fcntl: " << strerror(errno) << std::endl);
       return EXIT_FAILURE;
     }
 

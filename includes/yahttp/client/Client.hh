@@ -5,7 +5,6 @@
 #include <sstream>
 #include <string>
 
-#include <cassert>
 #include <sstream>
 #include <errno.h>
 #include <fcntl.h>
@@ -17,6 +16,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include "yahttp/client/debug.hh"
 #include "yahttp/URL.hh"
 #include "yahttp/HTTP.hh"
 #include "yahttp/Timer.hh"
