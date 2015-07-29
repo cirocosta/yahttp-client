@@ -1,4 +1,4 @@
-include_directories(${yahtml-client_INCLUDES})
+include_directories(${yahttp-client_INCLUDES})
 
 add_executable(url_test url_test.cc)
 add_executable(client_test client_test.cc)

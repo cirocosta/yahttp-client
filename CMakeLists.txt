@@ -32,7 +32,7 @@ set(INCLUDES ${yahttp-parser_INCLUDES} ${PROJECT_SOURCE_DIR}/includes)
 add_subdirectory(src/)
 
 
-#   --    GLOBAL VARIABLES
+#     --    global variables
 
 set(${PROJECT_NAME}_INCLUDES ${INCLUDES}
     CACHE INTERNAL
