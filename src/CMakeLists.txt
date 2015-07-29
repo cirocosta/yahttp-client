@@ -1,17 +1,18 @@
-#     --    Client
+#   Client Library
 
-add_library(url    URL.cc)
-add_library(client Client.cc Timer.cc)
-add_library(cli    Cli.cc)
+include_directories(${INCLUDES})
 
-add_executable(yahttp-client main.cc)
+add_library(yahttpclient URL.cc Client.cc Timer.cc)
+target_link_libraries(yahttpclient ${yahttp-parser_LIBS})
 
-include_directories(yahttp-client "${yahttp-parser_SOURCE_DIR}/includes")
 
-target_link_libraries(yahttp-client
-  cli
-  url
-  client
-  yahttpparser
-)
+# Executable
+
+add_executable(yahttp-client main.cc Cli.cc)
+target_link_libraries(yahttp-client yahttpclient)
+
+
+# Variables
+
+set(LIBS "yahttpclient" PARENT_SCOPE)
 

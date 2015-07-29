@@ -23,19 +23,36 @@ endif()
 
 #     --    dependencies
 
-include_directories(${yahttp-parser_SOURCE_DIR}/includes)
 add_subdirectory(lib/)
+
 
 #     --    source
 
-include_directories(${PROJECT_SOURCE_DIR}/includes)
+set(INCLUDES ${yahttp-parser_INCLUDES} ${PROJECT_SOURCE_DIR}/includes)
 add_subdirectory(src/)
 
+
+#   --    GLOBAL VARIABLES
+
+set(${PROJECT_NAME}_INCLUDES ${INCLUDES}
+    CACHE INTERNAL
+    "${PROJECT_NAME}: Include Directories"
+    FORCE
+)
+
+set(${PROJECT_NAME}_LIBS ${LIBS}
+    CACHE INTERNAL
+    "${PROJECT_NAME}: Link Libraries"
+    FORCE
+)
 
 #     --    testing
 
 if (test)
+  add_subdirectory(lib/googletest)
   enable_testing()
+  include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+
   add_subdirectory(tests/)
 endif(test)
 
