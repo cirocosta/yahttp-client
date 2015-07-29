@@ -5,6 +5,8 @@
 #include <sstream>
 #include <string>
 
+#include <cassert>
+#include <sstream>
 #include <errno.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
@@ -18,6 +20,7 @@
 #include "yahttp/URL.hh"
 #include "yahttp/HTTP.hh"
 #include "yahttp/Timer.hh"
+#include "yahttp/parser/driver.hh"
 
 namespace yahttp { namespace client {
 
@@ -38,14 +41,14 @@ public:
 
   int init ();
   int start ();
-  int request (const char *message);
+  HTTPMessagePtr request (const char *message) const;
   void end ();
 
   std::string gen_get ();
   std::string gen_get (const std::string& path);
 private:
   int _readn (int fd, char *buffer, const int n) const;
-  int _recv_till_timeout(int timeout = 2);
+  int _recv_till_timeout(std::stringstream& ss) const;
 };
 
 }};  // ! ns yahttp client

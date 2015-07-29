@@ -114,8 +114,9 @@ namespace yahttp { namespace client {
     return actual.str();
   }
 
-  int Client::request(const char *message)
+  HTTPMessagePtr Client::request(const char *message) const
   {
+    HTTPDriver driver (false, false);
     int numbytes = 0;
     int err;
     std::stringstream ss;
@@ -125,17 +126,20 @@ namespace yahttp { namespace client {
       err = EXIT_FAILURE;
     }
 
-    _recv_till_timeout();
+    _recv_till_timeout(ss);
+    driver.parse_source(ss.str());
+    assert(driver.message->type == HTTPMessageType::Response);
 
-    return err;
+    return driver.message;
   }
 
   /**
    * Receives until data stops being sent.
    * TODO avoid relying on this.
    */
-  int Client::_recv_till_timeout (int timeout)
+  int Client::_recv_till_timeout (std::stringstream& ss) const
   {
+    const int timeout = 2;
     char buf[MAXDATASIZE];
     int total_size = 0;
     int recv_size;
@@ -156,10 +160,10 @@ namespace yahttp { namespace client {
 
       memset(buf, 0, MAXDATASIZE);
       if (!~(recv_size = recv(m_sock_fd, buf, MAXDATASIZE - 1, 0)))
-        ::usleep(100000);
+        ::usleep(500000);
       else {
         total_size += recv_size;
-        printf("%s", buf);
+        ss << buf;
         timer.reset();
       }
     }

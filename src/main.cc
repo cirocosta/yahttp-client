@@ -12,6 +12,9 @@ using namespace yahttp::client;
 
 int main(int argc, char *argv[])
 {
+  HTTPMessagePtr message;
+  unsigned status_code;
+
   Cli cli;
   cli.parse(argc, argv);
 
@@ -19,7 +22,21 @@ int main(int argc, char *argv[])
   client.init();
 
   client.start();
-  client.request(client.gen_get().c_str());
+  message = client.request(client.gen_get().c_str());
+
+  status_code = static_cast<HTTPResponseStartLine*>(message->start_line.get())->status_code;
+
+  switch (status_code) {
+    case 200:
+      std::cout << message->body << std::endl;
+      break;
+
+    default:
+      std::cerr << "Error:" << std::endl
+                << "\tStatus code != 200: " << status_code << std::endl;
+      exit(EXIT_FAILURE);
+  }
+
   client.end();
 
   return EXIT_SUCCESS;
