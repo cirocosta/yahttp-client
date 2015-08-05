@@ -126,7 +126,7 @@ namespace yahttp { namespace client {
     }
 
     _recv_till_timeout(ss);
-    driver.parse_source(ss.str());
+    driver.parse(ss);
 
     ASSERT(driver.result == 0, "Message must be parsable");
     ASSERT(driver.message->type == HTTPMessageType::Response,
